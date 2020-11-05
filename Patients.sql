@@ -1,0 +1,11 @@
+﻿CREATE DATABASE PatientJournal
+
+CREATE TABLE Patients 
+(
+	 Id INT IDENTITY PRIMARY KEY,
+	 FirstName VARCHAR(50) NOT NULL,
+	 LastName VARCHAR(50) NOT NULL,
+	 SocialSecurityNumber VARCHAR(50) NOT NULL UNIQUE,
+	 PhoneNumber VARCHAR(50),
+	 Email VARCHAR(50)
+ )
