@@ -44,6 +44,21 @@ namespace Patients
                     case ConsoleKey.D2:
                     case ConsoleKey.NumPad2:
                         // 2. Search patient
+                        Clear();
+                        Write("Please insert Social Security Number of patient to search for: ");
+                        string socialSecNumber = ReadLine();
+                        Patient findThisPatient = DataAccess.FindPatient(socialSecNumber);
+                        Clear();
+                        if (findThisPatient != null)
+                        {
+                            WriteLine(findThisPatient.FullName);
+                        }
+                        else
+                        {
+                            WriteLine("Patient was not found");
+                        }
+                        Write("\nPress any key to continue...");
+                        ReadKey(true);
                         break;
 
                     case ConsoleKey.D3:

@@ -5,13 +5,17 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using static System.Console;
 
-namespace Patients
+namespace Patients.Domain
 {
     class Patient
     {
+        public int Id { get; }
         public string FirstName { get; }
         public string LastName { get; }
         public string SocialSecurityNumber { get; }
+        public string FullName => $"{FirstName} {LastName}";
+
+        public Journal Journal { get; set; }
 
         public Patient(string firstName, string lastName, string socialSecurityNumber)
         {
@@ -39,18 +43,20 @@ namespace Patients
                 throw new ArgumentException("Social security number was not in the correct format", "socialSecurityNumber");
             }
 
-            // FilterSSN #2: Is the birthdate part of the SSN in the future?
-
             DateTime birthDate = DateTime.ParseExact(socialSecurityNumber.Substring(0, 8), "yyyyMMdd", CultureInfo.CurrentCulture);
-            
+
             if (birthDate > DateTime.Now)
             {
                 throw new ArgumentException("This social security number is based on a future date", "socialSecurityNumber");  
             }
 
-            // If the SSN passed filters 1 and 2, then it is a legal social security number
-
             SocialSecurityNumber = socialSecurityNumber;
+        }
+
+        public Patient(int id, string firstName, string lastName, string socialSecurityNumber)
+            : this(firstName, lastName, socialSecurityNumber)
+        {
+            Id = id;
         }
     }
 }
