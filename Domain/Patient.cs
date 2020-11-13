@@ -58,5 +58,24 @@ namespace Patients.Domain
         {
             Id = id;
         }
+
+        public static string[,] TurnToStringArrays(List<Patient> patients)
+        {
+            string[,] patientColumns = new string[patients.Count + 1, 3];
+            string[] headers = new string[] { "Id", "Name", "Social Security Number" };
+
+            for (int i = 0; i < headers.Length; i++)
+            {
+                patientColumns[0, i] = headers[i];
+            }
+            for (int i = 1; i < patientColumns.GetLength(0); i++)
+            {
+                patientColumns[i, 0] = patients[i - 1].Id.ToString();
+                patientColumns[i, 1] = patients[i - 1].FullName;
+                patientColumns[i, 2] = patients[i - 1].SocialSecurityNumber;
+            }
+
+            return patientColumns;
+        }
     }
 }

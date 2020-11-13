@@ -12,11 +12,9 @@ namespace Patients
     {
         static void Main(string[] args)
         {
-            // 5. nov 2020 - AddNewPatientToDB seems to work
-            // Next: Create the menu, where I can choose to
-            //       fill in the patient info from the console.
-
-            Menu mainMenu = new Menu(new string[] { "Add patient", "Search patient", "Exit" });
+            Menu mainMenu = new Menu(new string[] {
+                "Add patient", "Search patient", 
+                "Create a journal for patient", "Exit" });
             ConsoleKey input;
             bool applicationRunning = true;
             do
@@ -27,7 +25,8 @@ namespace Patients
                 (
                     ConsoleKey.D1, ConsoleKey.NumPad1,
                     ConsoleKey.D2, ConsoleKey.NumPad2,
-                    ConsoleKey.D3, ConsoleKey.NumPad3
+                    ConsoleKey.D3, ConsoleKey.NumPad3,
+                    ConsoleKey.D4, ConsoleKey.NumPad4
                 );
                 Clear();
                 switch (input)
@@ -63,6 +62,19 @@ namespace Patients
 
                     case ConsoleKey.D3:
                     case ConsoleKey.NumPad3:
+                        var allPatients = DataAccess.ListOfPatients();
+                        WriteLine("Number of registered patients = " + allPatients.Count);
+                        var patientColumns = Patient.TurnToStringArrays(allPatients);
+                        WriteLine("Number of elements in patientColumns = " + patientColumns.Length);
+                        TableMaker patientsTable = new TableMaker(patientColumns);
+                        patientsTable.CreateTable();
+                        // 3) Create the journal as a class
+                        // 4) Update the database to include the new journal
+                        CreateJournal();
+                        break;
+
+                    case ConsoleKey.D4:
+                    case ConsoleKey.NumPad4:
                         applicationRunning = false;
                         break;
                 }
@@ -73,6 +85,14 @@ namespace Patients
             Thread.Sleep(1500);
             CursorVisible = true;
 
+        }
+
+        private static void CreateJournal()
+        {
+            Write("\n\n  Type ID of patient to create a journal for: ");
+            int patientId = int.Parse(ReadLine());
+            Journal journal = DataAccess.CreateJournalForPatient(patientId);
+            WriteLine(journal.PatientId);
         }
     }
 }

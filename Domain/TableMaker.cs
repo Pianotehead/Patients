@@ -18,54 +18,36 @@ namespace Patients.Domain
         {
             Clear();
             int[] rightMargins = FindLongest();
-            string borderVertical = " | ";
-            string footer = "";
-
             int sumWidths = 0;
+
             for (int i = 0; i < rightMargins.Length; i++)
             {
                 sumWidths += rightMargins[i];
             }
-
-            if (includeId)
-            {
-                footer = "\n\n  ID: ";
-                sumWidths += borderVertical.Length * 5;
-            }
-            else
-            {
-                footer = "\n\n  [C] Completed | [D] Delete | [Any other key] Back to main menu";
-                sumWidths += (borderVertical.Length * 4 - rightMargins[0]);
-            }
-
             if (sumWidths > LargestWindowWidth)
             {
                 throw new ArgumentOutOfRangeException("The table is too big for the screen");
             }
 
-            string borderHorizontal = " " + new string('-', sumWidths - 2);
-            string nextLine = "";
-            WriteLine($"\n{borderHorizontal}");
+            string borderHorizontal = " " + new string('-', sumWidths);
+            string nextLine = "  ";
 
             for (int rows = 0; rows < RowsAndColumns.GetLength(0); rows++)
             {
-                nextLine += borderVertical;
-
                 if (includeId)
                 {
-                    nextLine += RowsAndColumns[rows, 0].PadRight(rightMargins[0]) + borderVertical;
+                    nextLine += RowsAndColumns[rows, 0].PadRight(rightMargins[0] + 2);
+                    borderHorizontal += "-----";
                 }
-                nextLine += RowsAndColumns[rows, 1].PadRight(rightMargins[1]) + borderVertical;
-                nextLine += RowsAndColumns[rows, 2].PadRight(rightMargins[2]) + borderVertical;
-                nextLine += RowsAndColumns[rows, 3].PadRight(rightMargins[3]) + borderVertical;
-
+                nextLine += RowsAndColumns[rows, 1].PadRight(rightMargins[1] + 2);
+                nextLine += RowsAndColumns[rows, 2].PadRight(rightMargins[2]);
                 WriteLine(nextLine);
-                WriteLine(borderHorizontal);
-
-                nextLine = ""; // prepare for next line
+                if (rows == 0)
+                {
+                    WriteLine($"{borderHorizontal}");
+                }
+                nextLine = "  "; // prepare for next line
             }
-
-            Write(footer);
         }
 
         private int[] FindLongest()
