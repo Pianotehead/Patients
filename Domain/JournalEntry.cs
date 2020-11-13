@@ -8,20 +8,25 @@ namespace Patients.Domain
         // Maybe it is not needed?
         public JournalEntry(string entryBy, DateTime entryDate, string entry)
         {
-            Entry = entry;
             EntryBy = entryBy;
             EntryDate = entryDate;
+            Entry = entry;
         }
 
-        public JournalEntry(int id, string entryBy, DateTime entryDate, string entry)
+        public JournalEntry(int journalId, string entryBy, DateTime entryDate, string entry)
+            : this(entryBy, entryDate, entry)
+        {
+            JournalId = journalId;
+        }
+
+        public JournalEntry(int id, int journalId, string entryBy, DateTime entryDate, string entry)
+            : this(journalId, entryBy, entryDate, entry)
         {
             Id = id;
-            Entry = entry;
-            EntryBy = entryBy;
-            EntryDate = entryDate;
         }
 
         public int Id { get; }
+        public int JournalId { get; }
         public string EntryBy { get; }
         public DateTime EntryDate { get; }
         public string Entry { get; }

@@ -12,9 +12,11 @@ namespace Patients
     {
         static void Main(string[] args)
         {
-            Menu mainMenu = new Menu(new string[] {
-                "Add patient", "Search patient", 
-                "Create a journal for patient", "Exit" });
+            Menu mainMenu = new Menu(new string[]
+            { "Add patient", "Search patient", 
+               "Create a journal for a patient",
+               "Insert data into the journal of a patient", "Exit"
+            });
             ConsoleKey input;
             bool applicationRunning = true;
             do
@@ -26,7 +28,8 @@ namespace Patients
                     ConsoleKey.D1, ConsoleKey.NumPad1,
                     ConsoleKey.D2, ConsoleKey.NumPad2,
                     ConsoleKey.D3, ConsoleKey.NumPad3,
-                    ConsoleKey.D4, ConsoleKey.NumPad4
+                    ConsoleKey.D4, ConsoleKey.NumPad4,
+                    ConsoleKey.D5, ConsoleKey.NumPad5
                 );
                 Clear();
                 switch (input)
@@ -62,19 +65,24 @@ namespace Patients
 
                     case ConsoleKey.D3:
                     case ConsoleKey.NumPad3:
-                        var allPatients = DataAccess.ListOfPatients();
-                        WriteLine("Number of registered patients = " + allPatients.Count);
-                        var patientColumns = Patient.TurnToStringArrays(allPatients);
-                        WriteLine("Number of elements in patientColumns = " + patientColumns.Length);
-                        TableMaker patientsTable = new TableMaker(patientColumns);
-                        patientsTable.CreateTable();
-                        // 3) Create the journal as a class
-                        // 4) Update the database to include the new journal
-                        CreateJournal();
+                        int patientId = AskForPatientId();
+                        DataAccess.CreateJournalForPatient(patientId);
                         break;
+
+                    // No need to create neither a Journal nor a Patient object
+                    // Read the journal directly into the database.
+                    // Only need to create objects when reading from the DB
+                    // Might ask Robert about this
 
                     case ConsoleKey.D4:
                     case ConsoleKey.NumPad4:
+                        patientId = AskForPatientId();
+                        int journalId = DataAccess.FetchJournalId(patientId);
+                        CreateJournalEntry(journalId);
+                        break;
+
+                    case ConsoleKey.D5:
+                    case ConsoleKey.NumPad5:
                         applicationRunning = false;
                         break;
                 }
@@ -87,12 +95,26 @@ namespace Patients
 
         }
 
-        private static void CreateJournal()
+        private static void CreateJournalEntry(int journalId)
         {
+            Menu getData = new Menu(new string[]
+            {
+                "Entry by", "Entry"
+            });
+            string[] journalData = getData.AskForInputs();
+            DateTime entryDate = DateTime.Now;
+            JournalEntry journalEntry = new JournalEntry(journalId, journalData[0], entryDate, journalData[1]);
+            DataAccess.InsertJournalEntry(journalEntry);
+        }
+
+        private static int AskForPatientId()
+        {
+            var allPatients = DataAccess.ListOfPatients();
+            var patientColumns = Patient.TurnToStringArrays(allPatients);
+            TableMaker patientsTable = new TableMaker(patientColumns);
+            patientsTable.CreateTable();
             Write("\n\n  Type ID of patient to create a journal for: ");
-            int patientId = int.Parse(ReadLine());
-            Journal journal = DataAccess.CreateJournalForPatient(patientId);
-            WriteLine(journal.PatientId);
+            return int.Parse(ReadLine());
         }
     }
 }

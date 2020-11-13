@@ -83,14 +83,12 @@ namespace Patients.Domain
             return allPatients;
         }
 
-        public static Journal CreateJournalForPatient(int patientId)
+        public static void CreateJournalForPatient(int patientId)
         {
-            Journal journal = null;
-
             if (!PatientExists(patientId))
             {
                 WriteLine("\nThere is no patient with the given ID\n");
-                return journal;
+                return;
             }
 
             var sql = @"INSERT INTO Journals (PatientId)
@@ -105,7 +103,6 @@ namespace Patients.Domain
                 connection.Close();
 
             }
-            return new Journal();
         }
 
         public static Boolean PatientExists(int patientId)
@@ -137,6 +134,59 @@ namespace Patients.Domain
                 return true;
             }
             return false;
+        }
+
+        public static int FetchJournalId(int patientId)
+        {
+            var sql = @"SELECT Id FROM Journals
+                WHERE PatientId = @PatientId";
+            int journalId = 0;
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@PatientId", patientId);
+                connection.Open();
+                SqlDataReader dataReader = command.ExecuteReader();
+
+                if (dataReader.Read())
+                {
+                    journalId = (int)dataReader["Id"];
+                }
+                else
+                {
+                    Console.WriteLine("\nAn error has occurred. The journal does not exist");
+                    Console.WriteLine("or connection to the database failed\n");
+                }
+
+                connection.Close();
+
+                
+
+            }
+
+            return journalId;
+        }
+
+        public static void InsertJournalEntry(JournalEntry journalEntry)
+        {
+            var sql = @"INSERT INTO JournalEntries (
+                        JournalId, EntryBy, EntryDate, Entry)
+                        VALUES(@JournalId, @EntryBy, @EntryDate, @Entry)";
+            //NOTE! Must send a JournalEntry instance into the method
+            //      to get all the necessary data.
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@JournalId", journalEntry.JournalId);
+                command.Parameters.AddWithValue("@EntryBy", journalEntry.EntryBy);
+                command.Parameters.AddWithValue("@EntryDate", journalEntry.EntryDate);
+                command.Parameters.AddWithValue("@Entry", journalEntry.Entry);
+
+                connection.Open();
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
         }
     }
 }
