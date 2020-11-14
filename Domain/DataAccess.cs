@@ -149,7 +149,7 @@ namespace Patients.Domain
                 connection.Open();
                 SqlDataReader dataReader = command.ExecuteReader();
 
-                if (dataReader.Read())
+                while (dataReader.Read())
                 {
                     JournalEntry journalEntry = new JournalEntry
                     (
