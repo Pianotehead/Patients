@@ -136,6 +136,40 @@ namespace Patients.Domain
             return false;
         }
 
+        public static List<JournalEntry> LoadJournal(int journalId)
+        {
+            var sql = @"SELECT Id, JournalId, EntryBy, EntryDate, Entry 
+                      FROM JournalEntries WHERE JournalId = @JournalId";
+            var journalEntryList = new List<JournalEntry>();
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@JournalId", journalId);
+                connection.Open();
+                SqlDataReader dataReader = command.ExecuteReader();
+
+                if (dataReader.Read())
+                {
+                    JournalEntry journalEntry = new JournalEntry
+                    (
+                        (int)dataReader["Id"], (int)dataReader["JournalId"],
+                        (string)dataReader["EntryBy"], (DateTime)dataReader["EntryDate"],
+                        (string)dataReader["Entry"]
+                    );
+                    journalEntryList.Add(journalEntry);
+                }
+
+                connection.Close();
+            }
+            if (journalEntryList.Count == 0)
+            {
+                WriteLine("Warning!! List was empty!");
+                return null;
+            }
+            return journalEntryList;
+        }
+
         public static int FetchJournalId(int patientId)
         {
             var sql = @"SELECT Id FROM Journals

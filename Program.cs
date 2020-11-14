@@ -15,7 +15,8 @@ namespace Patients
             Menu mainMenu = new Menu(new string[]
             { "Add patient", "Search patient", 
                "Create a journal for a patient",
-               "Insert data into the journal of a patient", "Exit"
+               "Insert data into the journal of a patient",
+               "View journal for a patient", "Exit"
             });
             ConsoleKey input;
             bool applicationRunning = true;
@@ -29,7 +30,8 @@ namespace Patients
                     ConsoleKey.D2, ConsoleKey.NumPad2,
                     ConsoleKey.D3, ConsoleKey.NumPad3,
                     ConsoleKey.D4, ConsoleKey.NumPad4,
-                    ConsoleKey.D5, ConsoleKey.NumPad5
+                    ConsoleKey.D5, ConsoleKey.NumPad5,
+                    ConsoleKey.D6, ConsoleKey.NumPad6
                 );
                 Clear();
                 switch (input)
@@ -83,6 +85,22 @@ namespace Patients
 
                     case ConsoleKey.D5:
                     case ConsoleKey.NumPad5:
+                        // Get journal data
+                        patientId = AskForPatientId();
+                        journalId = DataAccess.FetchJournalId(patientId);
+                        var journalEntries = DataAccess.LoadJournal(journalId);
+                        foreach (var jEntry in journalEntries)
+                        {
+                            Write($"{jEntry.JournalId}  ");
+                            Write($"{jEntry.EntryBy}  ");
+                            Write($"{jEntry.EntryDate}  ");
+                            Write($"{jEntry.Entry}  \n");
+                        }
+                        ReadKey(true);
+                        break;
+
+                    case ConsoleKey.D6:
+                    case ConsoleKey.NumPad6:
                         applicationRunning = false;
                         break;
                 }
