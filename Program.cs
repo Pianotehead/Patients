@@ -89,13 +89,9 @@ namespace Patients
                         patientId = AskForPatientId();
                         journalId = DataAccess.FetchJournalId(patientId);
                         var journalEntries = DataAccess.LoadJournal(journalId);
-                        foreach (var jEntry in journalEntries)
-                        {
-                            Write($"{jEntry.JournalId}  ");
-                            Write($"{jEntry.EntryBy}  ");
-                            Write($"{jEntry.EntryDate}  ");
-                            Write($"{jEntry.Entry}  \n");
-                        }
+                        //BUGFIX201121-1 Prevent app from crashing on empty input
+                        PrintTheJournal(journalEntries);
+                        WriteLine("\n\n  Press any key to return to the main menu");
                         ReadKey(true);
                         break;
 
@@ -111,6 +107,26 @@ namespace Patients
             Thread.Sleep(1500);
             CursorVisible = true;
 
+        }
+
+        private static void PrintTheJournal(List<JournalEntry> journalEntries)
+        {
+            Clear();
+            WriteLine("\n\n");
+            if (journalEntries.Count == 0)
+            {
+                WriteLine("  Patient is not registered or doesn't have a journal");
+            }
+            else
+            {
+                foreach (var jEntry in journalEntries)
+                {
+                    Write($"  {jEntry.JournalId}  ");
+                    Write($"{jEntry.EntryBy}  ");
+                    Write($"{jEntry.EntryDate}  ");
+                    Write($"{jEntry.Entry}  \n");
+                }
+            }
         }
 
         private static void CreateJournalEntry(int journalId)

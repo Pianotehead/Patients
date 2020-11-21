@@ -162,11 +162,12 @@ namespace Patients.Domain
 
                 connection.Close();
             }
-            if (journalEntryList.Count == 0)
-            {
-                WriteLine("Warning!! List was empty!");
-                return null;
-            }
+            //BUGFIX201121-1 Prevent app from crashing on empty input
+            //if (journalEntryList.Count == 0)
+            //{
+            //    WriteLine("Warning!! List was empty!");
+            //    return null;
+            //}
             return journalEntryList;
         }
 
