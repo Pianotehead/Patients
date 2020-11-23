@@ -13,29 +13,29 @@ namespace Patients
         static void Main(string[] args)
         {
             Menu mainMenu = new Menu(new string[]
-            { "Add patient", "Search patient", 
-               "Create a journal for a patient",
-               "Insert data into the journal of a patient",
-               "View journal for a patient", "Exit"
+            { "Add patient", "Journals", 
+              "Exit"
             });
-            ConsoleKey input;
+            Menu journalMenu = new Menu(new string[]
+            {  "Write to a journal",
+               "Show journal", "Back to the main menu"
+            });
+            ConsoleKey menuChoice;
             bool applicationRunning = true;
             do
             {
                 mainMenu.CreateNumberedMenu();
                 CursorVisible = false;
-                input = Menu.ActOnOnlyTheseKeys
+                menuChoice = Menu.ActOnOnlyTheseKeys
                 (
                     ConsoleKey.D1, ConsoleKey.NumPad1,
                     ConsoleKey.D2, ConsoleKey.NumPad2,
-                    ConsoleKey.D3, ConsoleKey.NumPad3,
-                    ConsoleKey.D4, ConsoleKey.NumPad4,
-                    ConsoleKey.D5, ConsoleKey.NumPad5,
-                    ConsoleKey.D6, ConsoleKey.NumPad6
+                    ConsoleKey.D3, ConsoleKey.NumPad3
                 );
                 Clear();
-                switch (input)
+                switch (menuChoice)
                 {
+                    
                     case ConsoleKey.D1:
                     case ConsoleKey.NumPad1:
                         Menu askForData = new Menu(new string[] { 
@@ -47,57 +47,86 @@ namespace Patients
 
                     case ConsoleKey.D2:
                     case ConsoleKey.NumPad2:
-                        Clear();
-                        Write("Please insert Social Security Number of patient to search for: ");
-                        string socialSecNumber = ReadLine();
-                        Patient findThisPatient = DataAccess.FindPatient(socialSecNumber);
-                        Clear();
-                        if (findThisPatient != null)
+                        bool insideSubmenu = true;
+                        do
                         {
-                            WriteLine(findThisPatient.FullName);
-                        }
-                        else
-                        {
-                            WriteLine("Patient was not found");
-                        }
-                        Write("\nPress any key to continue...");
-                        ReadKey(true);
+                            Clear();
+                            journalMenu.CreateNumberedMenu();
+                            menuChoice = Menu.ActOnOnlyTheseKeys
+                            (
+                                ConsoleKey.D1, ConsoleKey.NumPad1,
+                                ConsoleKey.D2, ConsoleKey.NumPad2,
+                                ConsoleKey.D3, ConsoleKey.NumPad3
+                            );
+                            switch (menuChoice)
+                            {
+                                case ConsoleKey.D1:
+                                case ConsoleKey.NumPad1:
+                                    Clear();
+                                    WriteLine("Wait a sec...");
+                                    Thread.Sleep(5000);
+                                    break;
+
+                                case ConsoleKey.D2:
+                                case ConsoleKey.NumPad2:
+                                    Clear();
+                                    Write("\n\n  Please type the Social Security Number of the patient\n");
+                                    Write("  for which you want to view the journal (yyyymmdd-nnnn): ");
+                                    string socialSecNumber = ReadLine();
+                                    Patient findThisPatient = DataAccess.FindPatient(socialSecNumber);
+                                    Clear();
+                                    if (findThisPatient != null)
+                                    {
+                                        WriteLine(findThisPatient.FullName);
+                                    }
+                                    else
+                                    {
+                                        WriteLine("Patient was not found");
+                                    }
+                                    WriteLine("Wait a sec...");
+                                    Thread.Sleep(5000);
+                                    break;
+
+                                case ConsoleKey.D3:
+                                case ConsoleKey.NumPad3:
+                                    insideSubmenu = false;
+                                    break;
+                            }
+
+
+                        } while (insideSubmenu);
                         break;
 
                     case ConsoleKey.D3:
                     case ConsoleKey.NumPad3:
-                        int patientId = AskForPatientId();
-                        DataAccess.CreateJournalForPatient(patientId);
-                        break;
-
-                    // No need to create neither a Journal nor a Patient object
-                    // Read the journal directly into the database.
-                    // Only need to create objects when reading from the DB
-                    // Might ask Robert about this
-
-                    case ConsoleKey.D4:
-                    case ConsoleKey.NumPad4:
-                        patientId = AskForPatientId();
-                        int journalId = DataAccess.FetchJournalId(patientId);
-                        CreateJournalEntry(journalId);
-                        break;
-
-                    case ConsoleKey.D5:
-                    case ConsoleKey.NumPad5:
-                        // Get journal data
-                        patientId = AskForPatientId();
-                        journalId = DataAccess.FetchJournalId(patientId);
-                        var journalEntries = DataAccess.LoadJournal(journalId);
-                        //BUGFIX201121-1 Prevent app from crashing on empty input
-                        PrintTheJournal(journalEntries);
-                        WriteLine("\n\n  Press any key to return to the main menu");
-                        ReadKey(true);
-                        break;
-
-                    case ConsoleKey.D6:
-                    case ConsoleKey.NumPad6:
                         applicationRunning = false;
+                        //int patientId = AskForPatientId();
+                        //DataAccess.CreateJournalForPatient(patientId);
                         break;
+
+                    //case ConsoleKey.D4:
+                    //case ConsoleKey.NumPad4:
+                    //    patientId = AskForPatientId();
+                    //    int journalId = DataAccess.FetchJournalId(patientId);
+                    //    CreateJournalEntry(journalId);
+                    //    break;
+
+                    //case ConsoleKey.D5:
+                    //case ConsoleKey.NumPad5:
+                    //    // Get journal data
+                    //    patientId = AskForPatientId();
+                    //    journalId = DataAccess.FetchJournalId(patientId);
+                    //    var journalEntries = DataAccess.LoadJournal(journalId);
+                    //    //BUGFIX201121-1 Prevent app from crashing on empty input
+                    //    PrintTheJournal(journalEntries);
+                    //    WriteLine("\n\n  Press any key to return to the main menu");
+                    //    ReadKey(true);
+                    //    break;
+
+                    //case ConsoleKey.D6:
+                    //case ConsoleKey.NumPad6:
+                    //    applicationRunning = false;
+                    //    break;
                 }
             } while (applicationRunning);
 
