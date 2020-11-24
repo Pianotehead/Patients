@@ -49,8 +49,39 @@ namespace Patients.Domain
                 }
                 else
                 {
-                    Console.WriteLine("\nAn error has occurred. The patient register might be emtpy, the");
-                    Console.WriteLine("patient not registered, or connection to the database failed\n");
+                    WriteLine("\nAn error has occurred. The patient register might be emtpy, the");
+                    WriteLine("patient not registered, or connection to the database failed\n");
+                }
+
+                connection.Close();
+            }
+
+            return patient;
+        }
+
+        public static Patient FindPatientById(int patientId)
+        {
+            var sql = "SELECT * FROM Patients WHERE Id = @Id";
+            Patient patient = null;
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@Id", patientId);
+                connection.Open();
+                SqlDataReader dataReader = command.ExecuteReader();
+
+                if (dataReader.Read())
+                {
+                    patient = new Patient(id: (int)dataReader["Id"],
+                        firstName: (string)dataReader["FirstName"], 
+                        lastName: (string)dataReader["LastName"],
+                        socialSecurityNumber: (string)dataReader["SocialSecurityNumber"]);
+                }
+                else
+                {
+                    WriteLine("\nAn error has occurred. The patient register might be emtpy, the");
+                    WriteLine("patient not registered, or connection to the database failed\n");
                 }
 
                 connection.Close();
@@ -87,7 +118,7 @@ namespace Patients.Domain
         {
             if (!PatientExists(patientId))
             {
-                WriteLine("\nThere is no patient with the given ID\n");
+                WriteLine("\n  There is no patient with the given ID\n");
                 return;
             }
 
@@ -123,8 +154,8 @@ namespace Patients.Domain
                 }
                 else
                 {
-                    Console.WriteLine("\nAn error has occurred. The patient register might be emtpy, the");
-                    Console.WriteLine("patient not registered, or connection to the database failed\n");
+                    WriteLine("\nAn error has occurred. The patient register might be emtpy, the");
+                    WriteLine("patient not registered, or connection to the database failed\n");
                 }
 
                 connection.Close();
@@ -134,6 +165,37 @@ namespace Patients.Domain
                 return true;
             }
             return false;
+        }
+
+        public static Boolean JournalExists(Patient patient)
+        {
+            string sql = @"SELECT Id FROM Journals WHERE PatientId=@PatientId";
+            int idOfFoundJournal = 0;
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@PatientId", patient.Id);
+                connection.Open();
+                SqlDataReader dataReader = command.ExecuteReader();
+
+                if (dataReader.Read())
+                {
+                    idOfFoundJournal = (int)dataReader["Id"];
+                }
+                else
+                {
+                    WriteLine("\nAn error has occurred. The patient register might be emtpy, the");
+                    WriteLine("patient not registered, or connection to the database failed\n");
+                }
+
+                connection.Close();
+            }
+            if (idOfFoundJournal == 0)
+            {
+                return false;
+            }
+            return true;
         }
 
         public static List<JournalEntry> LoadJournal(int journalId)
@@ -162,12 +224,6 @@ namespace Patients.Domain
 
                 connection.Close();
             }
-            //BUGFIX201121-1 Prevent app from crashing on empty input
-            //if (journalEntryList.Count == 0)
-            //{
-            //    WriteLine("Warning!! List was empty!");
-            //    return null;
-            //}
             return journalEntryList;
         }
 
@@ -190,8 +246,8 @@ namespace Patients.Domain
                 }
                 else
                 {
-                    Console.WriteLine("\nAn error has occurred. The journal does not exist");
-                    Console.WriteLine("or connection to the database failed\n");
+                    WriteLine($"\nAn error has occurred. Either journal no. {journalId}");
+                    WriteLine("does not exist or connection to the database failed\n");
                 }
 
                 connection.Close();
@@ -203,20 +259,37 @@ namespace Patients.Domain
             return journalId;
         }
 
-        public static void InsertJournalEntry(JournalEntry journalEntry)
+        public static void CreateJournal(Patient patient)
         {
-            var sql = @"INSERT INTO JournalEntries (
-                        JournalId, EntryBy, EntryDate, Entry)
-                        VALUES(@JournalId, @EntryBy, @EntryDate, @Entry)";
-            //NOTE! Must send a JournalEntry instance into the method
-            //      to get all the necessary data.
+            if (JournalExists(patient))
+            {
+                WriteLine("\n\n  Patient has a journal already");
+                return;
+            }
+            
+            var sql = @"INSERT INTO Journals (PatientId)
+                        VALUES(@PatientId)";
             using (SqlConnection connection = new SqlConnection(connectionString))
             using (SqlCommand command = new SqlCommand(sql, connection))
             {
-                command.Parameters.AddWithValue("@JournalId", journalEntry.JournalId);
-                command.Parameters.AddWithValue("@EntryBy", journalEntry.EntryBy);
-                command.Parameters.AddWithValue("@EntryDate", journalEntry.EntryDate);
-                command.Parameters.AddWithValue("@Entry", journalEntry.Entry);
+                command.Parameters.AddWithValue("@PatientId", patient.Id);
+                connection.Open();
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
+        }
+
+        public static void CreateJournalEntry(JournalEntry journalentry)
+        {
+            var sql = @"INSERT INTO JournalEntries (JournalId, EntryBy, EntryDate, Entry)
+                      VALUES(@JournalId, @EntryBy, @EntryDate, @Entry)";
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@JournalId", journalentry.JournalId);
+                command.Parameters.AddWithValue("@EntryBy", journalentry.EntryBy);
+                command.Parameters.AddWithValue("@EntryDate", journalentry.EntryDate);
+                command.Parameters.AddWithValue("@Entry", journalentry.Entry);
 
                 connection.Open();
                 command.ExecuteNonQuery();

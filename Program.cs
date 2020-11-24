@@ -47,24 +47,68 @@ namespace Patients
 
                     case ConsoleKey.D2:
                     case ConsoleKey.NumPad2:
+                        List<Patient> allPatients = new List<Patient>();
                         bool insideSubmenu = true;
                         do
                         {
                             Clear();
                             journalMenu.CreateNumberedMenu();
-                            menuChoice = Menu.ActOnOnlyTheseKeys
+                            ConsoleKey subMenuChoice = Menu.ActOnOnlyTheseKeys
                             (
                                 ConsoleKey.D1, ConsoleKey.NumPad1,
                                 ConsoleKey.D2, ConsoleKey.NumPad2,
                                 ConsoleKey.D3, ConsoleKey.NumPad3
                             );
-                            switch (menuChoice)
+                            switch (subMenuChoice)
                             {
                                 case ConsoleKey.D1:
                                 case ConsoleKey.NumPad1:
+
                                     Clear();
-                                    WriteLine("Wait a sec...");
-                                    Thread.Sleep(5000);
+                                    allPatients = DataAccess.ListOfPatients();
+                                    int reportForPatient = AskForPatientId(allPatients);
+                                    Patient newPatient = allPatients.Find(fakePatient => fakePatient.Id == reportForPatient);
+                                    int journalId = DataAccess.FetchJournalId(reportForPatient);
+
+                                    if (newPatient != null)
+                                    {
+                                        if (journalId == 0)
+                                        {
+                                            DataAccess.CreateJournal(newPatient);
+                                            journalId = DataAccess.FetchJournalId(reportForPatient);
+                                            // Must get the new JournalId. Double work, don't see another way
+                                        }
+                                        JournalEntry journalEntry = GetJournalData(journalId);
+                                        DataAccess.CreateJournalEntry(journalEntry);
+
+                                    }
+                                    else if (newPatient == null)
+                                    {
+                                        Write("\n\n  Patient not found. Please try again");
+                                    }
+
+
+                                    // Next 2020-11-23:
+                                    // 2) Write the new JournalId to the database (if it didn't exist)
+                                    // 3) Write the bew journal entry to the database
+                                    // (2-3 can probably be combined into one)
+
+                                    // PROBLEM 2020-11-24:
+                                    // THE APP CREATES A NEW JOURNAL, EVEN THOUGH IT EXISTED ALREADY
+
+                                    //CONCLUSION
+                                    //Very difficult to create both classes and write to the database at the same time
+                                    //Because the data can't be read into classes until it has been written to the
+                                    //database and read from it. That is a new database operation.
+                                    //If patient has no journal, it has no journalId either. The journal ID is
+                                    //created when read into the database. Same goes for IDs for journal entries.
+                                    //There is no way of knowing these ID numbers beforehand.
+
+                                    WriteLine("\n\n  Your data has been saved to the journal registration system");
+                                    Thread.Sleep(1000);
+                                    WriteLine("\n\n  Redirecting you to the previous menu...");
+                                    Thread.Sleep(2000);
+
                                     break;
 
                                 case ConsoleKey.D2:
@@ -149,15 +193,13 @@ namespace Patients
             {
                 foreach (var jEntry in journalEntries)
                 {
-                    Write($"  {jEntry.JournalId}  ");
-                    Write($"{jEntry.EntryBy}  ");
-                    Write($"{jEntry.EntryDate}  ");
-                    Write($"{jEntry.Entry}  \n");
+                    Write($"  {jEntry.JournalId}  {jEntry.EntryBy}");
+                    Write($"{jEntry.EntryDate}  {jEntry.Entry}  \n");                    
                 }
             }
         }
 
-        private static void CreateJournalEntry(int journalId)
+        private static JournalEntry GetJournalData(int journalId)
         {
             Menu getData = new Menu(new string[]
             {
@@ -165,14 +207,14 @@ namespace Patients
             });
             string[] journalData = getData.AskForInputs();
             DateTime entryDate = DateTime.Now;
+            //Should have created the entryDate in the class, will not bother now
             JournalEntry journalEntry = new JournalEntry(journalId, journalData[0], entryDate, journalData[1]);
-            DataAccess.InsertJournalEntry(journalEntry);
+            return journalEntry;
         }
 
-        private static int AskForPatientId()
+        private static int AskForPatientId(List<Patient> patients)
         {
-            var allPatients = DataAccess.ListOfPatients();
-            var patientColumns = Patient.TurnToStringArrays(allPatients);
+            var patientColumns = Patient.TurnToStringArrays(patients);
             TableMaker patientsTable = new TableMaker(patientColumns);
             patientsTable.CreateTable();
             Write("\n\n  Type ID of patient to create a journal for: ");
