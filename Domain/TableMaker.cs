@@ -14,7 +14,7 @@ namespace Patients.Domain
             RowsAndColumns = rowsAndColumns;
         }
 
-        public void CreateTable(bool includeId = true)
+        public void CreateTable()
         {
             Clear();
             int[] rightMargins = FindLongest();
@@ -34,13 +34,11 @@ namespace Patients.Domain
 
             for (int rows = 0; rows < RowsAndColumns.GetLength(0); rows++)
             {
-                if (includeId)
+
+                for (int cols = 0; cols < RowsAndColumns.GetLength(1); cols++)
                 {
-                    nextLine += RowsAndColumns[rows, 0].PadRight(rightMargins[0] + 2);
-                    borderHorizontal += "-----";
+                    nextLine += RowsAndColumns[rows, cols].PadRight(rightMargins[cols] + 2);
                 }
-                nextLine += RowsAndColumns[rows, 1].PadRight(rightMargins[1] + 2);
-                nextLine += RowsAndColumns[rows, 2].PadRight(rightMargins[2]);
                 WriteLine(nextLine);
                 if (rows == 0)
                 {

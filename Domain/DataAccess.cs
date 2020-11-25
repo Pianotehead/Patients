@@ -198,33 +198,44 @@ namespace Patients.Domain
             return true;
         }
 
-        public static List<JournalEntry> LoadJournal(int journalId)
+        public static List<string> LoadJournal(int patientId)
         {
-            var sql = @"SELECT Id, JournalId, EntryBy, EntryDate, Entry 
-                      FROM JournalEntries WHERE JournalId = @JournalId";
-            var journalEntryList = new List<JournalEntry>();
-
+            var sql = @"SELECT Patients.FirstName, Patients.LastName, 
+		        Patients.SocialSecurityNumber,
+		        JournalEntries.EntryBy,
+		        JournalEntries.EntryDate,
+		        JournalEntries.Entry
+	            FROM Patients, Journals, JournalEntries
+	            WHERE Journals.Id = JournalEntries.JournalId
+	            AND Patients.Id=Journals.PatientId AND Patients.Id = @PatientId";
+            List<string> journalDataList = new List<string>();
+            string nextLine = "";
+            DateTime dateLine;
             using (SqlConnection connection = new SqlConnection(connectionString))
             using (SqlCommand command = new SqlCommand(sql, connection))
             {
-                command.Parameters.AddWithValue("@JournalId", journalId);
+                command.Parameters.AddWithValue("@PatientId", patientId);
                 connection.Open();
                 SqlDataReader dataReader = command.ExecuteReader();
 
                 while (dataReader.Read())
                 {
-                    JournalEntry journalEntry = new JournalEntry
-                    (
-                        (int)dataReader["Id"], (int)dataReader["JournalId"],
-                        (string)dataReader["EntryBy"], (DateTime)dataReader["EntryDate"],
-                        (string)dataReader["Entry"]
-                    );
-                    journalEntryList.Add(journalEntry);
+                    nextLine = (string)dataReader["FirstName"] + " ";
+                    nextLine += (string)dataReader["LastName"] + ";";
+                    nextLine += (string)dataReader["SocialSecurityNumber"] + ";";
+                    nextLine += (string)dataReader["EntryBy"] + ";";
+
+                    dateLine = (DateTime)dataReader["EntryDate"];
+                    nextLine += dateLine.ToShortDateString() + ";";
+                    nextLine += (string)dataReader["Entry"];
+
+                    journalDataList.Add(nextLine);
+                    nextLine = "";
                 }
 
                 connection.Close();
             }
-            return journalEntryList;
+            return journalDataList;
         }
 
         public static int FetchJournalId(int patientId)
